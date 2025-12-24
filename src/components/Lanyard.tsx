@@ -17,6 +17,13 @@ import { useRouter } from 'next/navigation';
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    meshLineGeometry: any;
+    meshLineMaterial: any;
+  }
+}
+
 interface LanyardProps {
   position?: [number, number, number];
   gravity?: [number, number, number];
@@ -193,7 +200,6 @@ function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false }: BandProps) {
                 router.push('/home');
               }
             }}
-            style={{ cursor: hovered ? 'pointer' : 'auto' }}
           >
             <mesh geometry={nodes.card.geometry}>
               <meshPhysicalMaterial
