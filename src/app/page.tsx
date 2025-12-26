@@ -43,7 +43,7 @@ export default function Home() {
         <div className="w-full flex flex-col items-center">
           <Lottie animationData={animationData} loop={true} style={{ width: 400, height: 400 }} />
           <p className="text-center text-lg text-gray-700 dark:text-gray-300 -mt-36 animate-pulse">
-            {isMobile ? "Click anywhere" : "Tap the card"}
+            {isMobile ? "Click anywhere" : "Tap the card here"}
           </p>
         </div>
         

@@ -329,7 +329,6 @@ const certifications: Certification[] = [
 
 export default function HomePage() {
   const router = useRouter();
-  const [displayedText, setDisplayedText] = useState("");
   const [showAllExperience, setShowAllExperience] = useState(false);
   const [showAllEducation, setShowAllEducation] = useState(false);
   const [showAllCertifications, setShowAllCertifications] = useState(false);
@@ -341,21 +340,6 @@ export default function HomePage() {
   const [educationDrawerOpen, setEducationDrawerOpen] = useState(false);
   const [selectedCertification, setSelectedCertification] = useState<Certification | null>(null);
   const [certificationDrawerOpen, setCertificationDrawerOpen] = useState(false);
-  const fullText = "Hi! I'm Joseph Clyde Mar";
-  
-  useEffect(() => {
-    let currentIndex = 0;
-    const typingInterval = setInterval(() => {
-      if (currentIndex <= fullText.length) {
-        setDisplayedText(fullText.slice(0, currentIndex));
-        currentIndex++;
-      } else {
-        clearInterval(typingInterval);
-      }
-    }, 20);
-
-    return () => clearInterval(typingInterval);
-  }, []);
 
   const iconCloudComponent = useMemo(() => (
     <div className="absolute top-0 right-4 z-20 w-64 h-64 hidden lg:block">
@@ -404,9 +388,8 @@ export default function HomePage() {
             
             {/* Text Content */}
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4 min-h-[3.5rem]">
-                {displayedText}
-                <span className="animate-pulse ml-1">|</span>
+              <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
+                Hi! I'm Joseph Clyde Mar
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">
                 Full Stack Developer & Creative Designer
