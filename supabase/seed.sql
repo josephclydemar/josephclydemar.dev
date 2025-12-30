@@ -1,30 +1,23 @@
 -- Seed data for portfolio
 
 -- Insert Portfolio Configuration
-INSERT INTO portfolio_config (personal_info, social_links, about_me, is_active) VALUES (
-  '{
-    "greeting": "Hi, I am",
-    "name": "Joseph Clyde",
-    "position": "Full Stack Developer",
-    "tagline": "Building amazing web experiences",
-    "profileImage": "/images/profile.jpg",
-    "resumeUrl": "/resume.pdf"
-  }',
-  '{
-    "email": "joseph@example.com",
-    "github": "https://github.com/josephclyde",
-    "linkedin": "https://linkedin.com/in/josephclyde",
-    "twitter": "https://twitter.com/josephclyde"
-  }',
-  '{
-    "title": "About Me",
-    "description": "I am a passionate full-stack developer with expertise in modern web technologies. I love building scalable applications and solving complex problems.",
-    "highlights": ["5+ years of experience", "15+ projects completed", "Open source contributor"],
-    "yearsOfExperience": 5,
-    "location": "Philippines"
-  }',
+INSERT INTO portfolio_config (profile_picture, greeting, position, about_me, is_active) VALUES (
+  '/images/profile.jpg',
+  'Hi, I am Joseph Clyde',
+  'Full Stack Developer',
+  'I am a passionate full-stack developer with expertise in modern web technologies. I love building scalable applications and solving complex problems. With 5+ years of experience, I have completed 15+ projects and actively contribute to open source.',
   true
-);
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Insert Social Links
+INSERT INTO social_links (name, icon, url, "order") VALUES
+  ('GitHub', 'github', 'https://github.com/josephclyde', 1),
+  ('LinkedIn', 'linkedin', 'https://linkedin.com/in/josephclyde', 2),
+  ('Email', 'email', 'mailto:joseph@example.com', 3),
+  ('Twitter', 'twitter', 'https://twitter.com/josephclyde', 4),
+  ('Portfolio', 'website', 'https://josephclyde.dev', 5)
+ON CONFLICT (id) DO NOTHING;
 
 -- Insert Skills
 INSERT INTO skills (name, category, proficiency, "order") VALUES

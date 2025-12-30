@@ -18,9 +18,11 @@ import { AnimatedShinyText } from "@/components/ui/animated-shiny-text";
 import { BentoCard } from "@/components/ui/bento-grid";
 import { IconCloud } from "@/components/ui/icon-cloud";
 import { ProjectDrawer, type Project } from "@/components/features/projects/ProjectDrawer";
-import { ExperienceDrawer, type Experience } from "@/components/features/experience/ExperienceDrawer";
+import { ExperienceDrawer, type Experience as ExperienceDrawerType } from "@/components/features/experience/ExperienceDrawer";
 import { EducationDrawer, type Education } from "@/components/features/education/EducationDrawer";
 import { CertificationDrawer, type Certification } from "@/components/features/certifications/CertificationDrawer";
+import { getPortfolioConfig, getSocialLinks, getSkills, getExperiences, getEducations, getCertifications } from "@/lib/supabase/portfolio.service";
+import type { PersonalInfo, SocialLink, Skill, Experience, Education as EducationType, Certification as CertificationType } from "@/types/portfolio.types";
 
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
@@ -112,80 +114,6 @@ const projects: Project[] = [
       "Customer reviews and ratings",
       "Admin dashboard with analytics"
     ]
-  }
-];
-
-// Experience data
-const experiences: Experience[] = [
-  {
-    id: "1",
-    position: "Senior Full Stack Developer",
-    company: "Tech Company Inc.",
-    employmentType: "Full-time",
-    location: "Remote",
-    startDate: "Jan 2023",
-    endDate: "Present",
-    logo: "/images/company1.jpg",
-    description: "Led the development of multiple high-impact web applications serving thousands of users. Collaborated with cross-functional teams to deliver scalable solutions using modern technologies.",
-    responsibilities: [
-      "Architected and developed full-stack applications using React, Next.js, and Node.js",
-      "Led a team of 5 developers in implementing new features and maintaining existing codebase",
-      "Implemented CI/CD pipelines and automated testing strategies",
-      "Conducted code reviews and mentored junior developers",
-      "Collaborated with product managers and designers to define technical requirements"
-    ],
-    achievements: [
-      "Reduced application load time by 40% through optimization techniques",
-      "Successfully migrated legacy systems to modern tech stack",
-      "Implemented automated deployment pipeline reducing release time by 60%"
-    ],
-    skills: ["React", "Next.js", "TypeScript", "Node.js", "PostgreSQL", "AWS", "Docker", "CI/CD"]
-  },
-  {
-    id: "2",
-    position: "Frontend Developer",
-    company: "Startup XYZ",
-    employmentType: "Internship",
-    location: "San Francisco, CA",
-    startDate: "Jun 2022",
-    endDate: "Dec 2022",
-    logo: "/images/company2.jpg",
-    description: "Developed and maintained responsive web applications as part of an agile development team. Gained hands-on experience with modern frontend frameworks and best practices.",
-    responsibilities: [
-      "Built responsive UI components using React and Tailwind CSS",
-      "Integrated RESTful APIs and managed application state",
-      "Participated in daily standups and sprint planning meetings",
-      "Fixed bugs and implemented feature requests",
-      "Wrote unit and integration tests for frontend components"
-    ],
-    achievements: [
-      "Developed a component library used across multiple projects",
-      "Improved mobile responsiveness across the platform",
-      "Reduced bundle size by 25% through code splitting"
-    ],
-    skills: ["React", "JavaScript", "Tailwind CSS", "Git", "REST APIs", "Jest"]
-  },
-  {
-    id: "3",
-    position: "Junior Developer",
-    company: "Previous Company",
-    employmentType: "Part-time",
-    location: "New York, NY",
-    startDate: "Jan 2021",
-    endDate: "May 2022",
-    logo: "/images/company3.jpg",
-    description: "Started my professional journey as a junior developer, learning software development fundamentals and contributing to various projects.",
-    responsibilities: [
-      "Assisted in developing web applications using HTML, CSS, and JavaScript",
-      "Fixed bugs and implemented minor features under supervision",
-      "Participated in code reviews and learned best practices",
-      "Documented code and maintained project documentation"
-    ],
-    achievements: [
-      "Successfully completed first production feature deployment",
-      "Received positive feedback from senior developers for code quality"
-    ],
-    skills: ["HTML", "CSS", "JavaScript", "jQuery", "PHP", "MySQL"]
   }
 ];
 
@@ -334,12 +262,51 @@ export default function HomePage() {
   const [showAllCertifications, setShowAllCertifications] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
+  const [selectedExperience, setSelectedExperience] = useState<ExperienceDrawerType | null>(null);
   const [experienceDrawerOpen, setExperienceDrawerOpen] = useState(false);
   const [selectedEducation, setSelectedEducation] = useState<Education | null>(null);
   const [educationDrawerOpen, setEducationDrawerOpen] = useState(false);
   const [selectedCertification, setSelectedCertification] = useState<Certification | null>(null);
   const [certificationDrawerOpen, setCertificationDrawerOpen] = useState(false);
+
+  // Portfolio data from database
+  const [personalInfo, setPersonalInfo] = useState<PersonalInfo | null>(null);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [educationsData, setEducationsData] = useState<EducationType[]>([]);
+  const [certificationsData, setCertificationsData] = useState<CertificationType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
+
+  // Load portfolio data
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [info, links, skillsData, experiencesData, educations, certifications] = await Promise.all([
+          getPortfolioConfig(),
+          getSocialLinks(),
+          getSkills(),
+          getExperiences(),
+          getEducations(),
+          getCertifications()
+        ]);
+        
+        if (info) setPersonalInfo(info);
+        setSocialLinks(links);
+        setSkills(skillsData);
+        setExperiences(experiencesData);
+        setEducationsData(educations);
+        setCertificationsData(certifications);
+      } catch (error) {
+        console.error('Error loading portfolio data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadData();
+  }, []);
 
   const iconCloudComponent = useMemo(() => (
     <div className="absolute top-0 right-4 z-20 w-64 h-64 hidden lg:block">
@@ -378,69 +345,59 @@ export default function HomePage() {
         <header className="w-full mb-12">
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Profile Image */}
-            <div className="flex-shrink-0">
-              <img
-                src="/images/profile.jpg"
-                alt="Joseph Clyde Mar"
-                className="w-48 h-48 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700"
-              />
+            <div className="shrink-0">
+              {isLoading ? (
+                <div className="w-48 h-48 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+              ) : (
+                <img
+                  src={personalInfo?.profilePicture || "/images/profile.jpg"}
+                  alt="Profile"
+                  className="w-48 h-48 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700"
+                />
+              )}
             </div>
             
             {/* Text Content */}
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
-                Hi! I'm Joseph Clyde Mar
-              </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">
-                Full Stack Developer & Creative Designer
-              </p>
+              {isLoading ? (
+                <>
+                  <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded mb-4 animate-pulse" />
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-6 animate-pulse" />
+                </>
+              ) : (
+                <>
+                  <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
+                    {personalInfo?.greeting || "Hi! I'm..."}
+                  </h1>
+                  <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">
+                    {personalInfo?.position || "Developer"}
+                  </p>
+                </>
+              )}
               
               {/* Social Links */}
               <div className="flex gap-3 justify-center md:justify-start flex-wrap">
-                <a
-                  href="mailto:your.email@gmail.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-80 transition"
-                >
-                  <Badge variant="secondary" className="px-3 py-2 text-sm cursor-pointer">
-                    <Mail className="w-4 h-4 mr-2" />
-                    <AnimatedShinyText className="text-foreground">Gmail</AnimatedShinyText>
-                  </Badge>
-                </a>
-                <a
-                  href="https://linkedin.com/in/yourprofile"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-80 transition"
-                >
-                  <Badge variant="secondary" className="px-3 py-2 text-sm cursor-pointer">
-                    <Linkedin className="w-4 h-4 mr-2" />
-                    <AnimatedShinyText className="text-foreground">LinkedIn</AnimatedShinyText>
-                  </Badge>
-                </a>
-                <a
-                  href="https://facebook.com/yourprofile"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-80 transition"
-                >
-                  <Badge variant="secondary" className="px-3 py-2 text-sm cursor-pointer">
-                    <Facebook className="w-4 h-4 mr-2" />
-                    <AnimatedShinyText className="text-foreground">Facebook</AnimatedShinyText>
-                  </Badge>
-                </a>
-                <a
-                  href="https://github.com/yourusername"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-80 transition"
-                >
-                  <Badge variant="secondary" className="px-3 py-2 text-sm cursor-pointer">
-                    <Github className="w-4 h-4 mr-2" />
-                    <AnimatedShinyText className="text-foreground">GitHub</AnimatedShinyText>
-                  </Badge>
-                </a>
+                {isLoading ? (
+                  <>
+                    <div className="w-24 h-9 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="w-24 h-9 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="w-24 h-9 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  </>
+                ) : (
+                  socialLinks.map((link) => (
+                    <a
+                      key={link.id}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:opacity-80 transition"
+                    >
+                      <Badge variant="secondary" className="px-3 py-2 text-sm cursor-pointer">
+                        <AnimatedShinyText className="text-foreground">{link.name}</AnimatedShinyText>
+                      </Badge>
+                    </a>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -452,10 +409,13 @@ export default function HomePage() {
           <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-6">
             About Me
           </h2>
-          <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
-            I'm a passionate developer with expertise in modern web technologies. 
-            I create beautiful, functional, and user-friendly applications that solve real-world problems.
-          </p>
+          {isLoading ? (
+            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          ) : (
+            <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+              {personalInfo?.aboutMe || "I'm a passionate developer with expertise in modern web technologies. I create beautiful, functional, and user-friendly applications that solve real-world problems."}
+            </p>
+          )}
         </section>
 
         {/* Skills Section */}
@@ -464,34 +424,43 @@ export default function HomePage() {
             Skills
           </h2>
           <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-            <Badge 
-              variant="secondary" 
-              className="px-4 py-2 text-base cursor-pointer transition-all duration-300 hover:scale-110 hover:shadow-lg active:scale-95 relative overflow-hidden group"
-            >
-              <span className="relative z-10">React</span>
-              <span className="absolute inset-0 bg-white/30 dark:bg-white/10 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 ease-out"></span>
-            </Badge>
-            <Badge 
-              variant="secondary" 
-              className="px-4 py-2 text-base cursor-pointer transition-all duration-300 hover:scale-110 hover:shadow-lg active:scale-95 relative overflow-hidden group"
-            >
-              <span className="relative z-10">Next.js</span>
-              <span className="absolute inset-0 bg-white/30 dark:bg-white/10 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 ease-out"></span>
-            </Badge>
-            <Badge 
-              variant="secondary" 
-              className="px-4 py-2 text-base cursor-pointer transition-all duration-300 hover:scale-110 hover:shadow-lg active:scale-95 relative overflow-hidden group"
-            >
-              <span className="relative z-10">TypeScript</span>
-              <span className="absolute inset-0 bg-white/30 dark:bg-white/10 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 ease-out"></span>
-            </Badge>
-            <Badge 
-              variant="secondary" 
-              className="px-4 py-2 text-base cursor-pointer transition-all duration-300 hover:scale-110 hover:shadow-lg active:scale-95 relative overflow-hidden group"
-            >
-              <span className="relative z-10">Tailwind CSS</span>
-              <span className="absolute inset-0 bg-white/30 dark:bg-white/10 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 ease-out"></span>
-            </Badge>
+            {isLoading ? (
+              <>
+                <div className="w-24 h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                <div className="w-28 h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                <div className="w-32 h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                <div className="w-24 h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+              </>
+            ) : skills.length > 0 ? (
+              skills.map((skill) => (
+                <div
+                  key={skill.id}
+                  className="relative"
+                  onMouseEnter={() => setHoveredSkill(skill.id)}
+                  onMouseLeave={() => setHoveredSkill(null)}
+                >
+                  <Badge 
+                    variant="secondary" 
+                    className="px-4 py-2 text-base cursor-pointer transition-all duration-300 hover:scale-110 hover:shadow-lg active:scale-95 relative overflow-hidden group"
+                  >
+                    <span className="relative z-10">{skill.name}</span>
+                    <span className="absolute inset-0 bg-white/30 dark:bg-white/10 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 ease-out"></span>
+                  </Badge>
+                  
+                  {/* Proficiency Tooltip */}
+                  {hoveredSkill === skill.id && skill.proficiency && (
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                      <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-4 py-2 rounded-lg shadow-xl min-w-[120px]">
+                        <p className="text-sm font-semibold capitalize text-center">{skill.proficiency}</p>
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-gray-900 dark:bg-gray-100"></div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400">No skills added yet</p>
+            )}
           </div>
         </section>
 
@@ -546,6 +515,14 @@ export default function HomePage() {
           <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-6">
             Experience
           </h2>
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+            </div>
+          ) : experiences.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">No experience added yet</p>
+          ) : (
           <div className="space-y-4">
             {experiences.slice(0, 2).map((experience) => (
               <div
@@ -633,6 +610,7 @@ export default function HomePage() {
               </button>
             )}
           </div>
+          )}
         </section>
 
         {/* Education Section */}
@@ -640,8 +618,16 @@ export default function HomePage() {
           <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-6">
             Education
           </h2>
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+            </div>
+          ) : educationsData.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">No education added yet</p>
+          ) : (
           <div className="space-y-4">
-            {educations.slice(0, 2).map((education) => (
+            {educationsData.slice(0, 2).map((education) => (
               <div
                 key={education.id}
                 onClick={() => {
@@ -667,14 +653,14 @@ export default function HomePage() {
                   </p>
                   <div className="flex items-center gap-1 mt-2 text-sm text-gray-600 dark:text-gray-400">
                     <Calendar className="w-4 h-4" />
-                    {education.startDate} - {education.endDate}
+                    {education.startDate} - {education.endDate || "Present"}
                   </div>
                 </div>
               </div>
             ))}
 
             {/* Additional Education Items - Collapsible */}
-            {showAllEducation && educations.slice(2).map((education) => (
+            {showAllEducation && educationsData.slice(2).map((education) => (
               <div
                 key={education.id}
                 onClick={() => {
@@ -700,13 +686,13 @@ export default function HomePage() {
                   </p>
                   <div className="flex items-center gap-1 mt-2 text-sm text-gray-600 dark:text-gray-400">
                     <Calendar className="w-4 h-4" />
-                    {education.startDate} - {education.endDate}
+                    {education.startDate} - {education.endDate || "Present"}
                   </div>
                 </div>
               </div>
             ))}
 
-            {educations.length > 2 && (
+            {educationsData.length > 2 && (
               <button
                 onClick={() => setShowAllEducation(!showAllEducation)}
                 className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
@@ -715,6 +701,7 @@ export default function HomePage() {
               </button>
             )}
           </div>
+          )}
         </section>
 
         {/* Certifications Section */}
@@ -722,8 +709,16 @@ export default function HomePage() {
           <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-6">
             Certifications
           </h2>
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+            </div>
+          ) : certificationsData.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">No certifications added yet</p>
+          ) : (
           <div className="space-y-4">
-            {certifications.slice(0, 2).map((certification) => (
+            {certificationsData.slice(0, 2).map((certification) => (
               <div
                 key={certification.id}
                 onClick={() => {
@@ -762,7 +757,7 @@ export default function HomePage() {
             ))}
 
             {/* Additional Certification Items - Collapsible */}
-            {showAllCertifications && certifications.slice(2).map((certification) => (
+            {showAllCertifications && certificationsData.slice(2).map((certification) => (
               <div
                 key={certification.id}
                 onClick={() => {
@@ -800,7 +795,7 @@ export default function HomePage() {
               </div>
             ))}
 
-            {certifications.length > 2 && (
+            {certificationsData.length > 2 && (
               <button
                 onClick={() => setShowAllCertifications(!showAllCertifications)}
                 className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
@@ -809,6 +804,7 @@ export default function HomePage() {
               </button>
             )}
           </div>
+          )}
         </section>
 
         {/* Contact Section */}

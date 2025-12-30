@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut, getUser } from '@/lib/supabase/auth-client';
 import { getCompletePortfolioData } from '@/lib/supabase/portfolio.service';
+import PersonalInfoEditor from './PersonalInfoEditor';
+import SkillsEditor from './SkillsEditor';
+import ExperienceEditor from '../experience/ExperienceEditor';
+import EducationEditor from '../education/EducationEditor';
+import CertificationEditor from '../certifications/CertificationEditor';
 import {
   LogOut,
   User,
@@ -49,8 +54,7 @@ export default function AdminDashboard() {
       const data = await getCompletePortfolioData();
       setPortfolioData({
         personalInfo: data.personalInfo ?? undefined,
-        socialLinks: data.socialLinks ?? undefined,
-        aboutMe: data.aboutMe ?? undefined,
+        socialLinks: data.socialLinks ?? [],
         skills: data.skills,
         projects: data.projects,
         experiences: data.experiences,
@@ -156,50 +160,11 @@ export default function AdminDashboard() {
         {/* Content Area */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           {activeTab === 'personal' && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                Personal Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Greeting
-                  </p>
-                  <p className="text-gray-900 dark:text-white">
-                    {portfolioData?.personalInfo?.greeting || 'Not set'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Name
-                  </p>
-                  <p className="text-gray-900 dark:text-white">
-                    {portfolioData?.personalInfo?.name || 'Not set'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Position
-                  </p>
-                  <p className="text-gray-900 dark:text-white">
-                    {portfolioData?.personalInfo?.position || 'Not set'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Tagline
-                  </p>
-                  <p className="text-gray-900 dark:text-white">
-                    {portfolioData?.personalInfo?.tagline || 'Not set'}
-                  </p>
-                </div>
-              </div>
-              <div className="pt-4">
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
-                  Edit Personal Info
-                </button>
-              </div>
-            </div>
+            <PersonalInfoEditor
+              personalInfo={portfolioData?.personalInfo}
+              socialLinks={portfolioData?.socialLinks || []}
+              onUpdate={loadPortfolioData}
+            />
           )}
 
           {activeTab === 'projects' && (
@@ -231,110 +196,31 @@ export default function AdminDashboard() {
           )}
 
           {activeTab === 'skills' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Skills ({portfolioData?.skills?.length || 0})
-                </h2>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
-                  Add Skill
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {portfolioData?.skills?.map((skill) => (
-                  <div
-                    key={skill.id}
-                    className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm"
-                  >
-                    {skill.name}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <SkillsEditor
+              skills={portfolioData?.skills || []}
+              onUpdate={loadPortfolioData}
+            />
           )}
 
           {activeTab === 'experience' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Experience ({portfolioData?.experiences?.length || 0})
-                </h2>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
-                  Add Experience
-                </button>
-              </div>
-              <div className="space-y-4">
-                {portfolioData?.experiences?.map((exp) => (
-                  <div
-                    key={exp.id}
-                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                  >
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
-                      {exp.position}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {exp.company} • {exp.startDate} - {exp.endDate || 'Present'}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ExperienceEditor
+              experiences={portfolioData?.experiences || []}
+              onUpdate={loadPortfolioData}
+            />
           )}
 
           {activeTab === 'education' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Education ({portfolioData?.educations?.length || 0})
-                </h2>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
-                  Add Education
-                </button>
-              </div>
-              <div className="space-y-4">
-                {portfolioData?.educations?.map((edu) => (
-                  <div
-                    key={edu.id}
-                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                  >
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
-                      {edu.degree} in {edu.field}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {edu.school} • {edu.startDate} - {edu.endDate || 'Present'}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <EducationEditor
+              educations={portfolioData?.educations || []}
+              onUpdate={loadPortfolioData}
+            />
           )}
 
           {activeTab === 'certifications' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Certifications ({portfolioData?.certifications?.length || 0})
-                </h2>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
-                  Add Certification
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {portfolioData?.certifications?.map((cert) => (
-                  <div
-                    key={cert.id}
-                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                  >
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
-                      {cert.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {cert.issuer} • Issued: {cert.issueDate}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <CertificationEditor
+              certifications={portfolioData?.certifications || []}
+              onUpdate={loadPortfolioData}
+            />
           )}
         </div>
       </main>

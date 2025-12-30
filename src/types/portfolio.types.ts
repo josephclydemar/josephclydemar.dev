@@ -1,31 +1,41 @@
 // Portfolio Data Types
 
-export interface PersonalInfo {
-  greeting: string;
+export type SocialIconType = 
+  | 'github'
+  | 'linkedin'
+  | 'twitter'
+  | 'facebook'
+  | 'instagram'
+  | 'youtube'
+  | 'discord'
+  | 'email'
+  | 'website'
+  | 'medium'
+  | 'dev'
+  | 'stackoverflow'
+  | 'behance'
+  | 'dribbble'
+  | 'figma'
+  | 'tiktok'
+  | 'twitch'
+  | 'reddit';
+
+export interface SocialLink {
+  id?: string;
   name: string;
+  icon: SocialIconType;
+  url: string;
+  order?: number;
+}
+
+export interface PersonalInfo {
+  id?: string;
+  profilePicture?: string;
+  greeting: string;
   position: string;
-  tagline?: string;
-  profileImage?: string;
-  resumeUrl?: string;
-}
-
-export interface SocialLinks {
-  email?: string;
-  github?: string;
-  linkedin?: string;
-  twitter?: string;
-  instagram?: string;
-  facebook?: string;
-  discord?: string;
-  website?: string;
-}
-
-export interface AboutMe {
-  title: string;
-  description: string;
-  highlights?: string[];
-  yearsOfExperience?: number;
-  location?: string;
+  aboutMe: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Skill {
@@ -79,9 +89,8 @@ export interface Education {
   field: string;
   startDate: string;
   endDate?: string;
-  isCurrentlyEnrolled?: boolean;
   logo?: string;
-  description: string;
+  description?: string;
   courses?: string[];
   achievements?: string[];
   gpa?: string;
@@ -106,8 +115,7 @@ export interface Certification {
 export interface PortfolioData {
   id?: string;
   personalInfo: PersonalInfo;
-  socialLinks: SocialLinks;
-  aboutMe: AboutMe;
+  socialLinks: SocialLink[];
   skills: Skill[];
   projects: Project[];
   experiences: Experience[];
@@ -125,15 +133,29 @@ export interface Database {
       portfolio_config: {
         Row: {
           id: string;
-          personal_info: PersonalInfo;
-          social_links: SocialLinks;
-          about_me: AboutMe;
+          profile_picture: string | null;
+          greeting: string;
+          position: string;
+          about_me: string;
           is_active: boolean;
           created_at: string;
           updated_at: string;
         };
         Insert: Omit<Database['public']['Tables']['portfolio_config']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['portfolio_config']['Insert']>;
+      };
+      social_links: {
+        Row: {
+          id: string;
+          name: string;
+          icon: SocialIconType;
+          url: string;
+          order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['social_links']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['social_links']['Insert']>;
       };
       skills: {
         Row: Skill & {

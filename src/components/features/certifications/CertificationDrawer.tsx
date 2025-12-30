@@ -20,7 +20,7 @@ export interface Certification {
   expiryDate?: string;
   credentialId?: string;
   credentialUrl?: string;
-  logo: string;
+  logo?: string;
   description: string;
   skills: string[];
   validationDetails?: string;
@@ -42,11 +42,13 @@ export function CertificationDrawer({ open, onOpenChange, certification }: Certi
           <DrawerHeader className="border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-start justify-between">
               <div className="flex gap-4 flex-1">
-                <img
-                  src={certification.logo}
-                  alt={`${certification.issuer} Logo`}
-                  className="w-16 h-16 object-contain rounded-lg bg-white p-2 flex-shrink-0"
-                />
+                {certification.logo && (
+                  <img
+                    src={certification.logo}
+                    alt={`${certification.issuer} Logo`}
+                    className="w-16 h-16 object-contain rounded-lg bg-white p-2 flex-shrink-0"
+                  />
+                )}
                 <div className="flex-1">
                   <DrawerTitle className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                     {certification.name}
@@ -85,7 +87,7 @@ export function CertificationDrawer({ open, onOpenChange, certification }: Certi
             </div>
 
             {/* Skills */}
-            {certification.skills.length > 0 && (
+            {certification.skills && certification.skills.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                   Skills Validated

@@ -16,15 +16,15 @@ export interface Experience {
   id: string;
   position: string;
   company: string;
-  employmentType: string;
-  location: string;
+  employmentType?: string;
+  location?: string;
   startDate: string;
-  endDate: string;
-  logo: string;
-  description: string;
-  responsibilities: string[];
-  achievements: string[];
-  skills: string[];
+  endDate?: string;
+  logo?: string;
+  description?: string;
+  responsibilities?: string[];
+  achievements?: string[];
+  skills?: string[];
 }
 
 interface ExperienceDrawerProps {
@@ -43,11 +43,13 @@ export function ExperienceDrawer({ open, onOpenChange, experience }: ExperienceD
           <DrawerHeader className="border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-start justify-between">
               <div className="flex gap-4 flex-1">
-                <img
-                  src={experience.logo}
-                  alt={`${experience.company} Logo`}
-                  className="w-16 h-16 object-contain rounded-lg bg-white p-2 flex-shrink-0"
-                />
+                {experience.logo && (
+                  <img
+                    src={experience.logo}
+                    alt={`${experience.company} Logo`}
+                    className="w-16 h-16 object-contain rounded-lg bg-white p-2 flex-shrink-0"
+                  />
+                )}
                 <div className="flex-1">
                   <DrawerTitle className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                     {experience.position}
@@ -55,18 +57,22 @@ export function ExperienceDrawer({ open, onOpenChange, experience }: ExperienceD
                   <DrawerDescription className="text-base text-gray-700 dark:text-gray-300 font-medium">
                     {experience.company}
                   </DrawerDescription>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {experience.employmentType}
-                  </p>
+                  {experience.employmentType && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {experience.employmentType}
+                    </p>
+                  )}
                   <div className="flex flex-wrap gap-3 mt-2 text-sm text-gray-600 dark:text-gray-400">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {experience.startDate} - {experience.endDate}
+                      {experience.startDate} - {experience.endDate || 'Present'}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {experience.location}
-                    </span>
+                    {experience.location && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        {experience.location}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -79,16 +85,19 @@ export function ExperienceDrawer({ open, onOpenChange, experience }: ExperienceD
 
           <div className="flex-1 p-6 space-y-6">
             {/* Description */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                About the Role
-              </h3>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                {experience.description}
-              </p>
-            </div>
+            {experience.description && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                  About the Role
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  {experience.description}
+                </p>
+              </div>
+            )}
 
             {/* Responsibilities */}
+            {experience.responsibilities && experience.responsibilities.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                 Key Responsibilities
@@ -105,9 +114,10 @@ export function ExperienceDrawer({ open, onOpenChange, experience }: ExperienceD
                 ))}
               </ul>
             </div>
+            )}
 
             {/* Achievements */}
-            {experience.achievements.length > 0 && (
+            {experience.achievements && experience.achievements.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                   Key Achievements
@@ -127,6 +137,7 @@ export function ExperienceDrawer({ open, onOpenChange, experience }: ExperienceD
             )}
 
             {/* Skills */}
+            {experience.skills && experience.skills.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                 Skills & Technologies
@@ -139,6 +150,7 @@ export function ExperienceDrawer({ open, onOpenChange, experience }: ExperienceD
                 ))}
               </div>
             </div>
+            )}
           </div>
         </div>
       </DrawerContent>

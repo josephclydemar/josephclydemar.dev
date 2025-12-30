@@ -1,10 +1,25 @@
 -- Portfolio Configuration Table
 CREATE TABLE IF NOT EXISTS portfolio_config (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  personal_info JSONB NOT NULL,
-  social_links JSONB NOT NULL DEFAULT '{}',
-  about_me JSONB NOT NULL,
-  is_active BOOLEAN DEFAULT true,
+  profile_picture TEXT,
+  greeting VARCHAR(255) NOT NULL,
+  position VARCHAR(255) NOT NULL,
+  about_me TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Social Links Table
+CREATE TABLE IF NOT EXISTS social_links (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(100) NOT NULL,
+  icon VARCHAR(50) NOT NULL CHECK (icon IN (
+    'github', 'linkedin', 'twitter', 'facebook', 'instagram', 'youtube',
+    'discord', 'email', 'website', 'medium', 'dev', 'stackoverflow',
+    'behance', 'dribbble', 'figma', 'tiktok', 'twitch', 'reddit'
+  )),
+  url TEXT NOT NULL,
+  "order" INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -47,16 +62,15 @@ CREATE TABLE IF NOT EXISTS experiences (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   position VARCHAR(255) NOT NULL,
   company VARCHAR(255) NOT NULL,
-  employment_type VARCHAR(50) NOT NULL CHECK (employment_type IN ('full-time', 'part-time', 'contract', 'freelance', 'internship')),
-  location VARCHAR(255) NOT NULL,
+  employment_type VARCHAR(50) DEFAULT 'Full-time' CHECK (employment_type IN ('Full-time', 'Part-time', 'Contract', 'Freelance', 'Internship')),
+  location VARCHAR(255),
   start_date VARCHAR(50) NOT NULL,
   end_date VARCHAR(50),
-  is_current_role BOOLEAN DEFAULT false,
   logo TEXT,
-  description TEXT NOT NULL,
-  responsibilities TEXT[] NOT NULL,
+  description TEXT,
+  responsibilities TEXT[] DEFAULT '{}',
   achievements TEXT[] DEFAULT '{}',
-  skills TEXT[] NOT NULL,
+  skills TEXT[] DEFAULT '{}',
   "order" INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -70,11 +84,10 @@ CREATE TABLE IF NOT EXISTS educations (
   field VARCHAR(255) NOT NULL,
   start_date VARCHAR(50) NOT NULL,
   end_date VARCHAR(50),
-  is_currently_enrolled BOOLEAN DEFAULT false,
   logo TEXT,
-  description TEXT NOT NULL,
-  courses TEXT[],
-  achievements TEXT[],
+  description TEXT,
+  courses TEXT[] DEFAULT '{}',
+  achievements TEXT[] DEFAULT '{}',
   gpa VARCHAR(10),
   "order" INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -103,8 +116,6 @@ CREATE TABLE IF NOT EXISTS certifications (
 CREATE INDEX IF NOT EXISTS idx_skills_category ON skills(category);
 CREATE INDEX IF NOT EXISTS idx_projects_is_featured ON projects(is_featured);
 CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
-CREATE INDEX IF NOT EXISTS idx_experiences_is_current ON experiences(is_current_role);
-CREATE INDEX IF NOT EXISTS idx_educations_is_current ON educations(is_currently_enrolled);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -117,6 +128,9 @@ $$ LANGUAGE plpgsql;
 
 -- Add triggers for updated_at columns
 CREATE TRIGGER update_portfolio_config_updated_at BEFORE UPDATE ON portfolio_config
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_social_links_updated_at BEFORE UPDATE ON social_links
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_skills_updated_at BEFORE UPDATE ON skills
@@ -136,6 +150,7 @@ CREATE TRIGGER update_certifications_updated_at BEFORE UPDATE ON certifications
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE portfolio_config ENABLE ROW LEVEL SECURITY;
+ALTER TABLE social_links ENABLE ROW LEVEL SECURITY;
 ALTER TABLE skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE experiences ENABLE ROW LEVEL SECURITY;
@@ -143,7 +158,8 @@ ALTER TABLE educations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE certifications ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for public read access
-CREATE POLICY "Enable read access for all users" ON portfolio_config FOR SELECT USING (is_active = true);
+CREATE POLICY "Enable read access for all users" ON portfolio_config FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON social_links FOR SELECT USING (true);
 CREATE POLICY "Enable read access for all users" ON skills FOR SELECT USING (true);
 CREATE POLICY "Enable read access for all users" ON projects FOR SELECT USING (true);
 CREATE POLICY "Enable read access for all users" ON experiences FOR SELECT USING (true);
@@ -152,9 +168,10 @@ CREATE POLICY "Enable read access for all users" ON certifications FOR SELECT US
 
 -- Create policies for authenticated users (admin)
 -- You can modify these based on your auth setup
-CREATE POLICY "Enable all access for authenticated users" ON portfolio_config FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Enable all access for authenticated users" ON skills FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Enable all access for authenticated users" ON projects FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Enable all access for authenticated users" ON experiences FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Enable all access for authenticated users" ON educations FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Enable all access for authenticated users" ON certifications FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Enable all access for authenticated users" ON portfolio_config FOR ALL USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Enable all access for authenticated users" ON social_links FOR ALL USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Enable all access for authenticated users" ON skills FOR ALL USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Enable all access for authenticated users" ON projects FOR ALL USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Enable all access for authenticated users" ON experiences FOR ALL USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Enable all access for authenticated users" ON educations FOR ALL USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Enable all access for authenticated users" ON certifications FOR ALL USING (auth.uid() IS NOT NULL);

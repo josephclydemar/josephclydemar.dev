@@ -2,8 +2,7 @@ import { createClient } from '@/lib/supabase/auth-client';
 import type { Database } from './database.types';
 import type {
   PersonalInfo,
-  SocialLinks,
-  AboutMe,
+  SocialLink,
   Skill,
   Project,
   Experience,
@@ -18,12 +17,12 @@ const supabase = createClient();
  * Portfolio Service - Functions to fetch portfolio data from Supabase
  */
 
-// Get Portfolio Configuration (Personal Info, Social Links, About Me)
+// Get Portfolio Configuration (Personal Info)
 export async function getPortfolioConfig() {
   const { data, error } = await supabase
     .from('portfolio_config')
     .select('*')
-    .eq('is_active', true)
+    .limit(1)
     .single();
 
   if (error) {
@@ -32,10 +31,35 @@ export async function getPortfolioConfig() {
   }
 
   return {
-    personalInfo: data.personal_info as PersonalInfo,
-    socialLinks: data.social_links as SocialLinks,
-    aboutMe: data.about_me as AboutMe,
-  };
+    id: data.id,
+    profilePicture: data.profile_picture || undefined,
+    greeting: data.greeting,
+    position: data.position,
+    aboutMe: data.about_me,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  } as PersonalInfo;
+}
+
+// Get Social Links
+export async function getSocialLinks() {
+  const { data, error } = await supabase
+    .from('social_links')
+    .select('*')
+    .order('order', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching social links:', error);
+    return [];
+  }
+
+  return data.map(link => ({
+    id: link.id,
+    name: link.name,
+    icon: link.icon,
+    url: link.url,
+    order: link.order,
+  })) as SocialLink[];
 }
 
 // Get All Skills
@@ -155,7 +179,6 @@ export async function getExperiences() {
     location: exp.location,
     startDate: exp.start_date,
     endDate: exp.end_date,
-    isCurrentRole: exp.is_current_role,
     logo: exp.logo,
     description: exp.description,
     responsibilities: exp.responsibilities,
@@ -185,11 +208,10 @@ export async function getEducations() {
     field: edu.field,
     startDate: edu.start_date,
     endDate: edu.end_date,
-    isCurrentlyEnrolled: edu.is_currently_enrolled,
     logo: edu.logo,
     description: edu.description,
-    courses: edu.courses,
-    achievements: edu.achievements,
+    courses: edu.courses || [],
+    achievements: edu.achievements || [],
     gpa: edu.gpa,
     order: edu.order,
   })) as Education[];
@@ -226,8 +248,9 @@ export async function getCertifications() {
 
 // Get Complete Portfolio Data (all sections)
 export async function getCompletePortfolioData() {
-  const [config, skills, projects, experiences, educations, certifications] = await Promise.all([
+  const [personalInfo, socialLinks, skills, projects, experiences, educations, certifications] = await Promise.all([
     getPortfolioConfig(),
+    getSocialLinks(),
     getSkills(),
     getProjects(),
     getExperiences(),
@@ -236,9 +259,8 @@ export async function getCompletePortfolioData() {
   ]);
 
   return {
-    personalInfo: config?.personalInfo || null,
-    socialLinks: config?.socialLinks || null,
-    aboutMe: config?.aboutMe || null,
+    personalInfo: personalInfo || null,
+    socialLinks,
     skills,
     projects,
     experiences,

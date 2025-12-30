@@ -1,34 +1,46 @@
 import { z } from 'zod';
 
+// Social Icon Types
+export const socialIconTypes = [
+  'github',
+  'linkedin',
+  'twitter',
+  'facebook',
+  'instagram',
+  'youtube',
+  'discord',
+  'email',
+  'website',
+  'medium',
+  'dev',
+  'stackoverflow',
+  'behance',
+  'dribbble',
+  'figma',
+  'tiktok',
+  'twitch',
+  'reddit',
+] as const;
+
+// Social Link Schema
+export const socialLinkSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, 'Link name is required'),
+  icon: z.enum(socialIconTypes as unknown as [string, ...string[]]),
+  url: z.string().url('Invalid URL'),
+  order: z.number().optional(),
+});
+
 // Personal Info Schema
 export const personalInfoSchema = z.object({
+  id: z.string().optional(),
+  profilePicture: z.string().url().optional().or(z.literal('')),
   greeting: z.string().min(1, 'Greeting is required'),
-  name: z.string().min(1, 'Name is required'),
   position: z.string().min(1, 'Position is required'),
-  tagline: z.string().optional(),
-  profileImage: z.string().url().optional().or(z.literal('')),
-  resumeUrl: z.string().url().optional().or(z.literal('')),
-});
-
-// Social Links Schema
-export const socialLinksSchema = z.object({
-  email: z.string().email().optional().or(z.literal('')),
-  github: z.string().url().optional().or(z.literal('')),
-  linkedin: z.string().url().optional().or(z.literal('')),
-  twitter: z.string().url().optional().or(z.literal('')),
-  instagram: z.string().url().optional().or(z.literal('')),
-  facebook: z.string().url().optional().or(z.literal('')),
-  discord: z.string().optional(),
-  website: z.string().url().optional().or(z.literal('')),
-});
-
-// About Me Schema
-export const aboutMeSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
-  highlights: z.array(z.string()).optional(),
-  yearsOfExperience: z.number().min(0).optional(),
-  location: z.string().optional(),
+  aboutMe: z.string().min(10, 'About me must be at least 10 characters'),
+  isActive: z.boolean().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
 // Skill Schema
@@ -115,8 +127,6 @@ export const certificationSchema = z.object({
 export const portfolioSchema = z.object({
   id: z.string().optional(),
   personalInfo: personalInfoSchema,
-  socialLinks: socialLinksSchema,
-  aboutMe: aboutMeSchema,
   skills: z.array(skillSchema).default([]),
   projects: z.array(projectSchema).default([]),
   experiences: z.array(experienceSchema).default([]),
@@ -129,8 +139,7 @@ export const portfolioSchema = z.object({
 
 // Export types inferred from schemas
 export type PersonalInfo = z.infer<typeof personalInfoSchema>;
-export type SocialLinks = z.infer<typeof socialLinksSchema>;
-export type AboutMe = z.infer<typeof aboutMeSchema>;
+export type SocialLink = z.infer<typeof socialLinkSchema>;
 export type Skill = z.infer<typeof skillSchema>;
 export type Project = z.infer<typeof projectSchema>;
 export type Experience = z.infer<typeof experienceSchema>;
